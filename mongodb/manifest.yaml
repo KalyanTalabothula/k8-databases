@@ -1,38 +1,28 @@
-# 🔎 kubernetes Deployment
-apiVersion: apps/v1
-kind: Deployment
+---
+apiVersion: v1
+kind: Service
 metadata: 
-  name: mongodb
-  namespace: roboshop  # edi evvakapote default namespace lo run avutumdhi.
-# deployment labels
+  name: mongodb-headless
+  namespace: roboshop   # <---
   labels:
     component: mongodb
     project: roboshop
     tier: database
 spec:
-  replicas: 1
-# These are the labels replica set use to create pod replicas, this should match pod labels
+  clusterIP: None   # <-- capital letter --> N 
   selector:
-    matchLabels: 
-      component: mongodb
-      project: roboshop
-      tier: database
-# This is pod definition
-  template:
-    metadata:
-      labels:
-        component: mongodb
-        project: roboshop
-        tier: database
-    spec:
-      containers: 
-      - name: mongodb
-        image: kalyantalabothula/mongodb:v1 # Mii Docker hub nimdi pull chesukuntumdhi
+    component: mongodb
+    project: roboshop
+    tier: database
+  ports:
+  - protocol: TCP
+    port: 27017 # service port
+    targetPort: 27017 # container Port 
 ---
 apiVersion: v1
 kind: Service
 metadata: 
-  name: mongodb
+  name: mongodb-headless
   namespace: roboshop   # <---
   labels:
     component: mongodb
@@ -47,3 +37,45 @@ spec:
   - protocol: TCP
     port: 27017 # service port
     targetPort: 27017 # container Port 
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongodb
+  labels:
+    component: mongodb
+    project: roboshop
+    tier: database
+spec:
+  selector:
+    matchLabels:
+      component: mongodb
+      project: roboshop
+      tier: database
+  serviceName: "mongodb-headless"    # <-- This should be Headless Service
+  replicas: 3 # by default is 1
+  template:
+    metadata:
+      labels:
+        component: mongodb
+        project: roboshop
+        tier: database  # has to match .spec.selector.matchLabels
+    spec:
+      containers:
+      - name: mongodb
+        image: kalyantalabothula/mongodb:v1
+        volumeMounts:
+        - name: mongodb-data
+          mountPath: /data/db
+# This is nothing but PVC, you can directly create here volumeClaimTemplate ani OR create separatly. 
+  volumeClaimTemplates:
+  - metadata:
+      name: mongodb-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "roboshop-ebs"  # <-- create cheysina StorageClass name ekkada evvali. 
+      resources:
+        requests:
+          storage: 2Gi
+
+# 1st Storageclass(SC) create cheyali--> Normal Service undali --> Headless Service undali --> PVC undali. edi anta cheste mii application kubernetes lo Stateful gha RUN avutaii.
