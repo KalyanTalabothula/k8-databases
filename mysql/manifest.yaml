@@ -79,4 +79,4 @@ spec:
         requests:
           storage: 2Gi
 
-# 1st Storageclass(SC) create cheyali--> Normal Service undali --> Headless Service undali --> PVC undali. edi anta cheste mii application kubernetes lo Stateful gha RUN avutaii.
+# 1st Storageclass(SC) create cheyali --> namespace --> Normal Service undali --> Headless Service undali --> PVC undali. edi anta cheste mii application kubernetes lo Stateful gha RUN avutaii.
