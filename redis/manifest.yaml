@@ -8,7 +8,7 @@ metadata:
     project: roboshop
     tier: database
 spec:
-  clusterIP: None   # <--- Headless service
+  clusterIP: None   # <--- Headless service  
   selector:
     component: redis
     project: roboshop
