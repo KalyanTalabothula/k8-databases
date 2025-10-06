@@ -1,4 +1,16 @@
-
+# 🔎 kubernetes pod screte
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql
+  labels:
+    component: mysql
+    project: roboshop
+    tier: database
+type: Opaque    #--> manam define chestunnam kabatti andhuke Opaque
+data: 
+  MYSQL_ROOT_PASSWORD: "Um9ib1Nob3BAMQ=="   # <---
+---
 apiVersion: v1
 kind: Service
 metadata: 
@@ -65,6 +77,9 @@ spec:
       containers:
       - name: mysql
         image: kalyantalabothula/mysql:v1
+        envFrom:
+        - secretRef:
+            name: mysql
         volumeMounts:
         - name: mysql-data
           mountPath: /var/lib/mysql
