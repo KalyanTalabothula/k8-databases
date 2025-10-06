@@ -54,7 +54,7 @@ spec:
       project: roboshop
       tier: database
   serviceName: "mysql-headless"    # <-- This should be Headless Service
-  replicas: 3 # by default is 1
+  replicas: 2 # by default is 1
   template:
     metadata:
       labels:
@@ -67,7 +67,7 @@ spec:
         image: kalyantalabothula/mysql:v1
         volumeMounts:
         - name: mysql-data
-          mountPath: /data/db
+          mountPath: /var/lib/mysql
 # This is nothing but PVC, you can directly create here volumeClaimTemplate ani OR create separatly. 
   volumeClaimTemplates:
   - metadata:
