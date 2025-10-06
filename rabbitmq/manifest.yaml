@@ -1,0 +1,98 @@
+# 🔎 kubernetes pod secret
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rabbitmq
+  labels:
+    component: rabbitmq
+    project: roboshop
+    tier: database
+type: Opaque    #--> manam define chestunnam kabatti andhuke Opaque
+data: 
+  RABBITMQ_DEFAULT_USER: "cm9ib3Nob3A="   # "roboshop"
+  RABBITMQ_DEFAULT_PASS: "cm9ib3Nob3AxMjM=" # "roboshop123" # <--- Key: "value" -- double quotes
+---
+apiVersion: v1
+kind: Service
+metadata: 
+  name: rabbitmq-headless
+  namespace: roboshop   # <--- namespace
+  labels:
+    component: rabbitmq
+    project: roboshop
+    tier: database
+spec:
+  clusterIP: None   # <--- Headless service  
+  selector:
+    component: rabbitmq
+    project: roboshop
+    tier: database
+  ports:
+  - protocol: TCP
+    port: 5672 # service port
+    targetPort: 5672 # container Port 
+---
+apiVersion: v1
+kind: Service
+metadata: 
+  name: rabbitmq
+  namespace: roboshop   # <--- namespace
+  labels:
+    component: rabbitmq
+    project: roboshop
+    tier: database
+spec:
+  selector:
+    component: rabbitmq
+    project: roboshop
+    tier: database
+  ports:
+  - protocol: TCP
+    port: 5672 # service port
+    targetPort: 5672 # container Port 
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: rabbitmq
+  namespace: roboshop   # <--- namespace
+  labels:
+    component: rabbitmq
+    project: roboshop
+    tier: database
+spec:
+  selector:
+    matchLabels:
+      component: rabbitmq
+      project: roboshop
+      tier: database
+  serviceName: "rabbitmq-headless"    # <-- This should be Headless Service
+  replicas: 2   # by default is 1
+  template:
+    metadata:
+      labels:
+        component: rabbitmq
+        project: roboshop
+        tier: database  # has to match .spec.selector.matchLabels
+    spec:
+      containers:
+      - name: rabbitmq
+        image: rabbitmq:3
+        envFrom: 
+        - secretRef:
+            name: rabbitmq
+        volumeMounts:
+        - name: rabbitmq-data
+          mountPath: /var/lib/rabbitmq
+# This is nothing but PVC, you can directly create here volumeClaimTemplate ani OR create separatly. 
+  volumeClaimTemplates:
+  - metadata:
+      name: rabbitmq-data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "roboshop-ebs"  # <-- create cheysina StorageClass name ekkada evvali. 
+      resources:
+        requests:
+          storage: 2Gi
+
+# 1st Storageclass(SC) create cheyali --> namespace --> Normal Service undali --> Headless Service undali --> PVC undali. edi anta cheste mii application kubernetes lo Stateful gha RUN avutaii.
